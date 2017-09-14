@@ -1,9 +1,9 @@
 <?php
 /**
  * Plugin Name: EnvaScout Form
- * Plugin URI: http://github.com/oknoorap/envascout-form
+ * Plugin URI: http://github.com/djavaweb/envascout-form
  * Description: Integration between Envato API, Helpscout, and Caldera Forms.
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: oknoorap
  * Author URI: http://github.com/oknoorap
  * License: GPLv2 or later
