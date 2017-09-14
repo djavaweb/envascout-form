@@ -1,0 +1,55 @@
+/*! Envato oAuth */
+.envascout-button-wrapper {
+  display: flex;
+  width: 100%;
+  min-height: 200px;
+  justify-content: center;
+  align-items: center;
+}
+
+.envascout-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #81B441;
+  padding: 15px 40px;
+  font-size: 18px;
+  color: #ffffff !important;
+  opacity: 0.8;
+  border-radius: 3px;
+  box-shadow: inset -1px -1px 2px 0px rgba(55, 80, 24, 0.4);
+}
+
+.envascout-button:hover {
+  color: #ffffff;
+  opacity: 1
+}
+
+.envascout-button:before {
+  content: ' ';
+  display: inline-block;
+  background-image: url('../images/envato-logo.png');
+  background-size: contain;
+  margin-right: 15px;
+  width: 30px;
+  height: 30px;
+}
+
+.envascout-error {
+  color: #910000;
+  text-align: center;
+}
+
+.envascout select {
+  -webkit-appearance: menulist-button;
+  max-width: 350px;
+}
+
+.envascout .wp-editor-tabs {
+  float: none;
+}
+
+.envascout .wp-switch-editor {
+  height: auto;
+  margin-left: 5px;
+}

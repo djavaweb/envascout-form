@@ -1,0 +1,19 @@
+#envascout-wrap .about-text {
+  font-size: 16px;
+  margin: 0 0 15px;
+  min-height: auto;
+}
+
+#envascout-wrap h1 {
+  font-size: 32px;
+  margin-bottom: 3px;
+}
+
+.dashicon-margin-top {
+  position: relative;
+  top: 3px;
+}
+
+textarea.regular-text {
+  width:350px;
+}
