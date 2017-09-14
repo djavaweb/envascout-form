@@ -29,6 +29,7 @@ if ( ! function_exists( 'is_plugin_active' ) ) {
 	include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 }
 
+require_once( ENVASCOUT_FORM_PLUGIN_DIR . 'class-wp-github-updater.php' );
 require_once( ENVASCOUT_FORM_PLUGIN_DIR . 'class-wp-envato-api.php' );
 require_once( ENVASCOUT_FORM_PLUGIN_DIR . 'class-wp-helpscout-api.php' );
 require_once( ENVASCOUT_FORM_PLUGIN_DIR . 'class-envascout-form.php' );
