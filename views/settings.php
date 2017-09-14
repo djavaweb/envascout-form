@@ -165,6 +165,10 @@
 								'textarea_name' => 'envascout_options[helpscout_dynamic_app]'
 							), $template_editor_settings ) ); ?>
 							<p class="description">
+								Dynamic App URL: <?php echo site_url( '?envascout_action=helpscout_app' ); ?>
+							</p>
+							<br />
+							<p class="description">
 								<strong>%username%</strong> will be replaced with envato username.<br />
 								<strong>%firstname%</strong> will be replaced with envato firstname.<br />
 								<strong>%lastname%</strong> will be replaced with envato lastname.<br />
