@@ -101,11 +101,13 @@ class WP_Helpscout_Api {
 		$transient_key = $this->transient_prefix . sanitize_title_with_dashes( $endpoint_url );
 		$mailbox_list = get_transient( $transient_key );
 
-		if ( false === $mailbox_list ) {
+		if ( empty( $mailbox_list ) ) {
 			// New request.
 			$request = wp_remote_request(
 				$endpoint_url, array(
 					'method' => 'GET',
+					'timeout' => 45,
+					'redirection' => 5,
 					'headers' => array(
 						'Accept' => 'application/json',
 						'Content-Type' => 'application/json',

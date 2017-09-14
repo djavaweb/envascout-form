@@ -120,12 +120,12 @@
 								}
 								?>
 							</select>
-							<button type="button" class="button hide-if-no-js" data-toggle="0" aria-label="Refresh Mailbox" v-on:click="refreshHelpscout()">
-								<span class="dashicons dashicons-update dashicon-margin-top"></span>
-							</button>
 							<?php else : ?>
 							<p class="description">Please set API Key Correctly or <a href="https://secure.helpscout.net/settings/mailboxes/" target="_blank">Create Mailbox</a>
 							<?php endif; ?>
+							<button type="button" class="button hide-if-no-js" data-toggle="0" aria-label="Refresh Mailbox" v-on:click="refreshHelpscout()">
+								<span class="dashicons dashicons-update dashicon-margin-top"></span>
+							</button>
 						</td>
 					</tr>
 					<tr>
@@ -164,6 +164,10 @@
 							<?php wp_editor( stripslashes_deep( $options['helpscout_dynamic_app'] ), 'helpscout_dynamic_app', wp_parse_args( array(
 								'textarea_name' => 'envascout_options[helpscout_dynamic_app]'
 							), $template_editor_settings ) ); ?>
+							<p class="description">
+								Dynamic App URL: <?php echo site_url( '?envascout_action=helpscout_app' ); ?>
+							</p>
+							<br />
 							<p class="description">
 								<strong>%username%</strong> will be replaced with envato username.<br />
 								<strong>%firstname%</strong> will be replaced with envato firstname.<br />

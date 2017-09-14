@@ -93,7 +93,7 @@ class Envascout_Form {
 		if ( is_admin() ) {
 			// Plugin Updater.
 			$config = array(
-				'slug' => plugin_basename( __FILE__ ),
+				'slug' => 'envascout-form/envascout-form.php' ,
 				'proper_folder_name' => 'envascout-form',
 				'api_url' => 'https://api.github.com/repos/djavaweb/envascout-form',
 				'raw_url' => 'https://raw.github.com/djavaweb/envascout-form/master',
