@@ -120,12 +120,12 @@
 								}
 								?>
 							</select>
-							<button type="button" class="button hide-if-no-js" data-toggle="0" aria-label="Refresh Mailbox" v-on:click="refreshHelpscout()">
-								<span class="dashicons dashicons-update dashicon-margin-top"></span>
-							</button>
 							<?php else : ?>
 							<p class="description">Please set API Key Correctly or <a href="https://secure.helpscout.net/settings/mailboxes/" target="_blank">Create Mailbox</a>
 							<?php endif; ?>
+							<button type="button" class="button hide-if-no-js" data-toggle="0" aria-label="Refresh Mailbox" v-on:click="refreshHelpscout()">
+								<span class="dashicons dashicons-update dashicon-margin-top"></span>
+							</button>
 						</td>
 					</tr>
 					<tr>
