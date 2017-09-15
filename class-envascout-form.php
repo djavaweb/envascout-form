@@ -527,7 +527,7 @@ class Envascout_Form {
 			'helpscout_mailbox' => 0,
 			'helpscout_subject' => '%subject%',
 			'helscout_content' => '%content%',
-			'helpscout_dynamic_app' => "<img src=\"%image_url%\" />\r\n \r\n <div class=\"toggleGroup open\">\r\n <h4><a href=\"#\" class=\"toggleBtn\"><i class=\"icon-person\"></i>Profile</a></h4>\r\n <div class=\"toggle indent\">\r\n <ul class=\"unstyled\">\r\n <li><strong>Username</strong><br />%username%</li>\r\n <li><strong>Name</strong><br />%firstname% %lastname%</li>\r\n <li><strong>Country</strong><br />%country%</li>\r\n </ul>\r\n </div>\r\n </div>\r\n \r\n <div class=\"toggleGroup\">\r\n <h4><a href=\"#\" class=\"toggleBtn\"><i class=\"icon-cart\"></i>Purchase Info</a></h4>\r\n <div class=\"toggle indent\">\r\n %purchase_info%\r\n </div>\r\n </div>\r\n",
+			'helpscout_dynamic_app' => "<img src=\"%image_url%\" />\r\n \r\n <div class=\"toggleGroup open\">\r\n <h4><a href=\"#\" class=\"toggleBtn\"><i class=\"icon-person\"></i>Profile</a></h4>\r\n <div class=\"toggle indent\">\r\n <ul class=\"unstyled\">\r\n <li><strong>Username</strong><br />%username%</li>\r\n <li><strong>Name</strong><br />%firstname% %lastname%</li>\r\n <li><strong>Country</strong><br />%country%</li>\r\n </ul>\r\n </div>\r\n </div>\r\n \r\n <div class=\"toggleGroup\">\r\n <h4><a href=\"#\" class=\"toggleBtn\"><i class=\"icon-tag\"></i>Item Info</a></h4>\r\n <div class=\"toggle indent\">\r\n %item_info%\r\n </div>\r\n </div>\r\n \r\n<div class=\"toggleGroup\">\r\n <h4><a href=\"#\" class=\"toggleBtn\"><i class=\"icon-cart\"></i>Purchase Info</a></h4>\r\n <div class=\"toggle indent\">\r\n %purchase_info%\r\n </div>\r\n </div>\r\n",
 		);
 		add_option( 'envascout_options', wp_json_encode( $default_options ), '', false );
 
