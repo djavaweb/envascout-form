@@ -196,7 +196,7 @@ class Envascout_Form {
 		} else {
 			if ( '' !== self::$options['caldera_form'] ) {
 				$caldera_form = sprintf( '[caldera_form id="%s"]', self::$options['caldera_form'] );
-				echo do_shortcode( $caldera_form );
+				$html = do_shortcode( $caldera_form );
 			}
 		}
 
@@ -272,8 +272,12 @@ class Envascout_Form {
 		}
 
 		// Build item info.
-		$item_detail = self::$envato_api->get_item( $data[ self::$options['caldera_item_id'] ] );
 		$data['item_info'] = array();
+
+		if ( intval( $data[ self::$options['caldera_item_id'] ] ) > 0 ) {
+			$item_detail = self::$envato_api->get_item( $data[ self::$options['caldera_item_id'] ] );
+		}
+
 		if ( isset( $item_detail ) ) {
 			$available_item_info = array( 'name', 'updated_at', 'published_at' );
 			$item_info = array();
@@ -574,7 +578,7 @@ class Envascout_Form {
 			$sql = 'CREATE TABLE `' . $ticket_table . '` (' .
 				'`ID` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,' .
 				'`ticket_id` varchar(60) NOT NULL,' .
-				'`username` varchar(60) NOT NULL,' .
+				'`email` varchar(60) NOT NULL,' .
 				'`data` text NOT NULL,' .
 				'`time` varchar(60) NOT NULL,' .
 				'PRIMARY KEY (`ID`),' .

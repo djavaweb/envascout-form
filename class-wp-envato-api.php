@@ -235,6 +235,7 @@ class WP_Envato_API {
 			$status = wp_remote_retrieve_response_code( $request );
 
 			if ( 502 === $status ) {
+				echo $endpoint_url;
 				print_r( $response );
 				die();
 			}
