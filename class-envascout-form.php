@@ -180,24 +180,27 @@ class Envascout_Form {
 		// Add required styles and javascripts.
 		wp_enqueue_style( 'envascout' );
 		wp_enqueue_script( 'envascout' );
-		?>
-		<?php if ( ! self::$envato_api->is_authenticated() ) : ?>
-			<div class="envascout-button-wrapper">
-				<a href="<?php echo esc_url( site_url( '?envascout_action=request' ) ); ?>" class="envascout-button"><?php echo esc_html( self::$options['oauth_button_label'] ); ?></a>
-				<?php if ( ! empty( $error_message ) ) : ?>
-				<br />
-				<div class="envascout-error"><?php echo esc_html( $error_message ); ?></div>
-				<?php endif; ?>
-			</div>
-		<?php else : ?>
-			<?php
+
+		$html = '';
+
+		if ( ! self::$envato_api->is_authenticated() ) {
+			$html .= '<div class="envascout-button-wrapper">' .
+			sprintf( '<a href="%s" class="envascout-button">%s</a>', esc_url( site_url( '?envascout_action=request' ) ), esc_html( self::$options['oauth_button_label'] ) );
+
+			if ( ! empty( $error_message ) ) {
+				$html .= '<br />' .
+				sprintf( '<div class="envascout-error">%s</div>', esc_html( $error_message ) );
+			}
+
+			$html .= '</div>';
+		} else {
 			if ( '' !== self::$options['caldera_form'] ) {
 				$caldera_form = sprintf( '[caldera_form id="%s"]', self::$options['caldera_form'] );
 				echo do_shortcode( $caldera_form );
 			}
-			?>
-		<?php endif; ?>
-		<?php
+		}
+
+		return $html;
 	}
 
 	/**
@@ -252,24 +255,25 @@ class Envascout_Form {
 		// Build purchase data.
 		// Because it need authorization, we need to save it to database.
 		$purchase_detail = self::$envato_api->get_all_purchase_from_buyer();
+		$data['purchase_info'] = array();
+
 		if ( isset( $purchase_detail['purchases'] ) ) {
 			$purchase_items = $purchase_detail['purchases'];
 			$purchase_info = array();
 			foreach ( $purchase_items as $detail ) {
 				if ( strval( $detail['item']['id'] ) === $data[ self::$options['caldera_item_id'] ] ) {
-					$purchase_info[ $detail['sold_at'] ] = array(
+					$data['purchase_info'][ $detail['sold_at'] ] = array(
 						'Purchase Code' => $detail['code'],
 						'License' => $detail['license'],
 						'Supported Until' => $detail['supported_until'],
 					);
 				}
 			}
-
-			$data['purchase_info'] = $purchase_info;
 		}
 
 		// Build item info.
 		$item_detail = self::$envato_api->get_item( $data[ self::$options['caldera_item_id'] ] );
+		$data['item_info'] = array();
 		if ( isset( $item_detail ) ) {
 			$available_item_info = array( 'name', 'updated_at', 'published_at' );
 			$item_info = array();
@@ -278,11 +282,9 @@ class Envascout_Form {
 				if ( in_array( $key, $available_item_info, true ) ) {
 					$title = str_replace( '_', ' ', $key );
 					$title = ucfirst( $title );
-					$item_info[ $title ] = $value;
+					$data['item_info'][ $title ] = $value;
 				}
 			}
-
-			$data['item_info'] = $item_info;
 		}
 
 		// Get user full detail.
