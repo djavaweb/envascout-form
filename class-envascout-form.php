@@ -180,24 +180,27 @@ class Envascout_Form {
 		// Add required styles and javascripts.
 		wp_enqueue_style( 'envascout' );
 		wp_enqueue_script( 'envascout' );
-		?>
-		<?php if ( ! self::$envato_api->is_authenticated() ) : ?>
-			<div class="envascout-button-wrapper">
-				<a href="<?php echo esc_url( site_url( '?envascout_action=request' ) ); ?>" class="envascout-button"><?php echo esc_html( self::$options['oauth_button_label'] ); ?></a>
-				<?php if ( ! empty( $error_message ) ) : ?>
-				<br />
-				<div class="envascout-error"><?php echo esc_html( $error_message ); ?></div>
-				<?php endif; ?>
-			</div>
-		<?php else : ?>
-			<?php
+
+		$html = '';
+
+		if ( ! self::$envato_api->is_authenticated() ) {
+			$html .= '<div class="envascout-button-wrapper">' .
+			sprintf( '<a href="%s" class="envascout-button">%s</a>', esc_url( site_url( '?envascout_action=request' ) ), esc_html( self::$options['oauth_button_label'] ) );
+
+			if ( ! empty( $error_message ) ) {
+				$html .= '<br />' .
+				sprintf( '<div class="envascout-error">%s</div>', esc_html( $error_message ) );
+			}
+
+			$html .= '</div>';
+		} else {
 			if ( '' !== self::$options['caldera_form'] ) {
 				$caldera_form = sprintf( '[caldera_form id="%s"]', self::$options['caldera_form'] );
 				echo do_shortcode( $caldera_form );
 			}
-			?>
-		<?php endif; ?>
-		<?php
+		}
+
+		return $html;
 	}
 
 	/**
@@ -252,24 +255,25 @@ class Envascout_Form {
 		// Build purchase data.
 		// Because it need authorization, we need to save it to database.
 		$purchase_detail = self::$envato_api->get_all_purchase_from_buyer();
+		$data['purchase_info'] = array();
+
 		if ( isset( $purchase_detail['purchases'] ) ) {
 			$purchase_items = $purchase_detail['purchases'];
 			$purchase_info = array();
 			foreach ( $purchase_items as $detail ) {
 				if ( strval( $detail['item']['id'] ) === $data[ self::$options['caldera_item_id'] ] ) {
-					$purchase_info[ $detail['sold_at'] ] = array(
+					$data['purchase_info'][ $detail['sold_at'] ] = array(
 						'Purchase Code' => $detail['code'],
 						'License' => $detail['license'],
 						'Supported Until' => $detail['supported_until'],
 					);
 				}
 			}
-
-			$data['purchase_info'] = $purchase_info;
 		}
 
 		// Build item info.
 		$item_detail = self::$envato_api->get_item( $data[ self::$options['caldera_item_id'] ] );
+		$data['item_info'] = array();
 		if ( isset( $item_detail ) ) {
 			$available_item_info = array( 'name', 'updated_at', 'published_at' );
 			$item_info = array();
@@ -278,11 +282,13 @@ class Envascout_Form {
 				if ( in_array( $key, $available_item_info, true ) ) {
 					$title = str_replace( '_', ' ', $key );
 					$title = ucfirst( $title );
-					$item_info[ $title ] = $value;
+					$data['item_info'][ $title ] = $value;
 				}
 			}
+		}
 
-			$data['item_info'] = $item_info;
+		if ( empty( $data['purchase_info' ] ) && empty( $data['item_info'] ) ) {
+			$data['not_a_buyer'] = true;
 		}
 
 		// Get user full detail.
@@ -439,14 +445,14 @@ class Envascout_Form {
 				case 'helpscout_app':
 					header( 'Content-type: application/json' );
 
-					$data = json_decode( file_get_contents('php://input'), true );
+					$php_input = json_decode( file_get_contents('php://input'), true );
 
 					// Get email from db.
-					if ( isset( $data['ticket' ] ) ) {
-						$ticket_id = $data['ticket']['id'];
+					if ( isset( $php_input['ticket' ] ) ) {
+						$ticket_id = $php_input['ticket']['id'];
 						$html = self::$options['helpscout_dynamic_app'];
-						$data = array();
 						$result = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM `' . $table_prefix . 'envascout_tickets` as `tickets` INNER JOIN `' . $table_prefix . 'envascout_users` as `users` ON `tickets`.`email` = `users`.`email` WHERE `tickets`.`ticket_id` = %d', $ticket_id ) , ARRAY_A );
+						$data = array();
 
 						if ( $result ) {
 							$data = json_decode( $result[0]['data'], true );
@@ -454,6 +460,10 @@ class Envascout_Form {
 
 							unset( $result[0]['data'] );
 							unset( $data['ID'] );
+
+							if ( isset( $data['not_a_buyer'] ) && true === $data['not_a_buyer'] ) {
+								$html = sprintf( '<p><span class="badge red">%s</span></p><br />', self::$options['helpscout_not_a_buyer'] ) . $html;
+							}
 
 							// Parsing %purchase_info% syntax.
 							if ( isset( $data['purchase_info'] ) ) {
@@ -527,6 +537,7 @@ class Envascout_Form {
 			'helpscout_mailbox' => 0,
 			'helpscout_subject' => '%subject%',
 			'helscout_content' => '%content%',
+			'helpscout_not_a_buyer' => 'Presale Support',
 			'helpscout_dynamic_app' => "<img src=\"%image_url%\" />\r\n \r\n <div class=\"toggleGroup open\">\r\n <h4><a href=\"#\" class=\"toggleBtn\"><i class=\"icon-person\"></i>Profile</a></h4>\r\n <div class=\"toggle indent\">\r\n <ul class=\"unstyled\">\r\n <li><strong>Username</strong><br />%username%</li>\r\n <li><strong>Name</strong><br />%firstname% %lastname%</li>\r\n <li><strong>Country</strong><br />%country%</li>\r\n </ul>\r\n </div>\r\n </div>\r\n \r\n <div class=\"toggleGroup\">\r\n <h4><a href=\"#\" class=\"toggleBtn\"><i class=\"icon-tag\"></i>Item Info</a></h4>\r\n <div class=\"toggle indent\">\r\n %item_info%\r\n </div>\r\n </div>\r\n \r\n<div class=\"toggleGroup\">\r\n <h4><a href=\"#\" class=\"toggleBtn\"><i class=\"icon-cart\"></i>Purchase Info</a></h4>\r\n <div class=\"toggle indent\">\r\n %purchase_info%\r\n </div>\r\n </div>\r\n",
 		);
 		add_option( 'envascout_options', wp_json_encode( $default_options ), '', false );

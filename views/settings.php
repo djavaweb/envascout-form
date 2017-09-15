@@ -150,6 +150,13 @@
 						</td>
 					</tr>
 					<tr>
+						<th scope="row"><label for="helpscout_not_a_buyer">Non-buyer Label</label></th>
+						<td>
+							<input name="envascout_options[helpscout_not_a_buyer]" type="text" id="helpscout_not_a_buyer" value="<?php echo esc_attr( $options['helpscout_not_a_buyer'] ); ?>" class="regular-text">
+							<p class="description">Label for non-buyer support in dynamic app.</p>
+						</td>
+					</tr>
+					<tr>
 						<th scope="row"><label for="helpscout_content">Content Template</label></th>
 						<td>
 							<?php wp_editor( stripslashes_deep( $options['helpscout_content'] ), 'helpscout_content', wp_parse_args( array(
