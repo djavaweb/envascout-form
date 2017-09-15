@@ -196,7 +196,7 @@ class Envascout_Form {
 		} else {
 			if ( '' !== self::$options['caldera_form'] ) {
 				$caldera_form = sprintf( '[caldera_form id="%s"]', self::$options['caldera_form'] );
-				echo do_shortcode( $caldera_form );
+				$html = do_shortcode( $caldera_form );
 			}
 		}
 
