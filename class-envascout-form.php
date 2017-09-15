@@ -287,6 +287,10 @@ class Envascout_Form {
 			}
 		}
 
+		if ( empty( $data['purchase_info' ] ) && empty( $data['item_info'] ) ) {
+			$data['not_a_buyer'] = true;
+		}
+
 		// Get user full detail.
 		$user_info = self::$envato_api->get_user_full_info();
 
@@ -441,14 +445,14 @@ class Envascout_Form {
 				case 'helpscout_app':
 					header( 'Content-type: application/json' );
 
-					$data = json_decode( file_get_contents('php://input'), true );
+					$php_input = json_decode( file_get_contents('php://input'), true );
 
 					// Get email from db.
-					if ( isset( $data['ticket' ] ) ) {
-						$ticket_id = $data['ticket']['id'];
+					if ( isset( $php_input['ticket' ] ) ) {
+						$ticket_id = $php_input['ticket']['id'];
 						$html = self::$options['helpscout_dynamic_app'];
-						$data = array();
 						$result = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM `' . $table_prefix . 'envascout_tickets` as `tickets` INNER JOIN `' . $table_prefix . 'envascout_users` as `users` ON `tickets`.`email` = `users`.`email` WHERE `tickets`.`ticket_id` = %d', $ticket_id ) , ARRAY_A );
+						$data = array();
 
 						if ( $result ) {
 							$data = json_decode( $result[0]['data'], true );
@@ -456,6 +460,10 @@ class Envascout_Form {
 
 							unset( $result[0]['data'] );
 							unset( $data['ID'] );
+
+							if ( isset( $data['not_a_buyer'] ) && true === $data['not_a_buyer'] ) {
+								$html = sprintf( '<p><span class="badge red">%s</span></p><br />', self::$options['helpscout_not_a_buyer'] ) . $html;
+							}
 
 							// Parsing %purchase_info% syntax.
 							if ( isset( $data['purchase_info'] ) ) {
@@ -529,6 +537,7 @@ class Envascout_Form {
 			'helpscout_mailbox' => 0,
 			'helpscout_subject' => '%subject%',
 			'helscout_content' => '%content%',
+			'helpscout_not_a_buyer' => 'Presale Support',
 			'helpscout_dynamic_app' => "<img src=\"%image_url%\" />\r\n \r\n <div class=\"toggleGroup open\">\r\n <h4><a href=\"#\" class=\"toggleBtn\"><i class=\"icon-person\"></i>Profile</a></h4>\r\n <div class=\"toggle indent\">\r\n <ul class=\"unstyled\">\r\n <li><strong>Username</strong><br />%username%</li>\r\n <li><strong>Name</strong><br />%firstname% %lastname%</li>\r\n <li><strong>Country</strong><br />%country%</li>\r\n </ul>\r\n </div>\r\n </div>\r\n \r\n <div class=\"toggleGroup\">\r\n <h4><a href=\"#\" class=\"toggleBtn\"><i class=\"icon-tag\"></i>Item Info</a></h4>\r\n <div class=\"toggle indent\">\r\n %item_info%\r\n </div>\r\n </div>\r\n \r\n<div class=\"toggleGroup\">\r\n <h4><a href=\"#\" class=\"toggleBtn\"><i class=\"icon-cart\"></i>Purchase Info</a></h4>\r\n <div class=\"toggle indent\">\r\n %purchase_info%\r\n </div>\r\n </div>\r\n",
 		);
 		add_option( 'envascout_options', wp_json_encode( $default_options ), '', false );
