@@ -165,7 +165,8 @@
 								'textarea_name' => 'envascout_options[helpscout_dynamic_app]'
 							), $template_editor_settings ) ); ?>
 							<p class="description">
-								Dynamic App URL: <?php echo site_url( '?envascout_action=helpscout_app' ); ?>
+								Dynamic App URL: <?php echo site_url( '?envascout_action=helpscout_app' ); ?><br />
+								Styling Guide: <a href="http://developer.helpscout.net/custom-apps/style-guide/" target="_blank">http://developer.helpscout.net/custom-apps/style-guide/</a>
 							</p>
 							<br />
 							<p class="description">
