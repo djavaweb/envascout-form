@@ -272,8 +272,12 @@ class Envascout_Form {
 		}
 
 		// Build item info.
-		$item_detail = self::$envato_api->get_item( $data[ self::$options['caldera_item_id'] ] );
 		$data['item_info'] = array();
+
+		if ( intval( $data[ self::$options['caldera_item_id'] ] ) > 0 ) {
+			$item_detail = self::$envato_api->get_item( $data[ self::$options['caldera_item_id'] ] );
+		}
+
 		if ( isset( $item_detail ) ) {
 			$available_item_info = array( 'name', 'updated_at', 'published_at' );
 			$item_info = array();
