@@ -574,7 +574,7 @@ class Envascout_Form {
 			$sql = 'CREATE TABLE `' . $ticket_table . '` (' .
 				'`ID` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,' .
 				'`ticket_id` varchar(60) NOT NULL,' .
-				'`username` varchar(60) NOT NULL,' .
+				'`email` varchar(60) NOT NULL,' .
 				'`data` text NOT NULL,' .
 				'`time` varchar(60) NOT NULL,' .
 				'PRIMARY KEY (`ID`),' .
