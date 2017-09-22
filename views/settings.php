@@ -14,6 +14,7 @@
 	<h2 class="nav-tab-wrapper wp-clearfix">
 		<a href="#" v-on:click="showTab('envato', $event)" class="nav-tab" :class="{'nav-tab-active': displayTab === 'envato'}">Envato Settings</a>
 		<a href="#" v-on:click="showTab('helpscout', $event)" class="nav-tab" :class="{'nav-tab-active': displayTab === 'helpscout'}">Helpscout Settings</a>
+		<a href="#" v-on:click="showTab('help', $event)" class="nav-tab" :class="{'nav-tab-active': displayTab === 'help'}">Help</a>
 	</h2>
 
 	<form method="post" action="admin.php?page=envascout-form-setting">
@@ -146,14 +147,14 @@
 						<th scope="row"><label for="helpscout_subject">Subject Template</label></th>
 						<td>
 							<input name="envascout_options[helpscout_subject]" type="text" id="helpscout_subject" value="<?php echo esc_attr( $options['helpscout_subject'] ); ?>" class="regular-text">
-							<p class="description"><strong>%fieldslug%</strong> will be replaced with caldera form slug, e.g %subject%.</p>
+							<p class="description">Any <strong>{{caldera.fieldslug}}</strong> will be replaced with caldera form slug, e.g {{caldera.subject}}.</p>
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><label for="helpscout_not_a_buyer">Non-buyer Label</label></th>
+						<th scope="row"><label for="helpscout_tag">Tag Template</label></th>
 						<td>
-							<input name="envascout_options[helpscout_not_a_buyer]" type="text" id="helpscout_not_a_buyer" value="<?php echo esc_attr( $options['helpscout_not_a_buyer'] ); ?>" class="regular-text">
-							<p class="description">Label for non-buyer support in dynamic app.</p>
+							<input name="envascout_options[helpscout_tag]" type="text" id="helpscout_tag" value="<?php echo esc_attr( $options['helpscout_tag'] ); ?>" class="regular-text">
+							<p class="description">Any <strong>{{caldera.fieldslug}}</strong> will be replaced with caldera form slug.</p>
 						</td>
 					</tr>
 					<tr>
@@ -162,7 +163,7 @@
 							<?php wp_editor( stripslashes_deep( $options['helpscout_content'] ), 'helpscout_content', wp_parse_args( array(
 								'textarea_name' => 'envascout_options[helpscout_content]'
 							), $template_editor_settings ) ); ?>
-							<p class="description"><strong>%fieldslug%</strong> will be replaced with caldera form slug, e.g %content%.</p>
+							<p class="description"><strong>{{caldera.fieldslug}}</strong> will be replaced with caldera form slug, e.g {{caldera.content}}.</p>
 						</td>
 					</tr>
 					<tr>
@@ -175,20 +176,26 @@
 								Dynamic App URL: <?php echo site_url( '?envascout_action=helpscout_app' ); ?><br />
 								Styling Guide: <a href="http://developer.helpscout.net/custom-apps/style-guide/" target="_blank">http://developer.helpscout.net/custom-apps/style-guide/</a>
 							</p>
-							<br />
-							<p class="description">
-								<strong>%username%</strong> will be replaced with envato username.<br />
-								<strong>%firstname%</strong> will be replaced with envato firstname.<br />
-								<strong>%lastname%</strong> will be replaced with envato lastname.<br />
-								<strong>%image_url%</strong> will be replaced with avatar's url.<br />
-								<strong>%country%</strong> will be replaced with user's country.<br />
-								<strong>%item_info%</strong> will be replaced with item information.<br />
-								<strong>%purchase_info%</strong> will be replaced with purchase information, such as purchase code.<br />
-								<strong>%fieldslug%</strong> will be replaced with caldera form slug, e.g %content%.
-							</p>
 						</td>
 					</tr>
 				</table>
+			</div>
+
+			<div class="tab-content tab-envato" style="display:none" v-show="displayTab === 'help'">
+				<h3>Templating</h3>
+				<p>EnvaScout is using Twig for template engine, you can learn <a href="https://twig.symfony.com/" target="_blank">in their homepage</a>.</p>
+
+				<h3>Syntax List</h3>
+				<p class="description">
+					<strong>{{user.username}}</strong> will be replaced with envato username.<br />
+					<strong>{{user.firstname}}</strong> will be replaced with envato firstname.<br />
+					<strong>{{user.lastname}}</strong> will be replaced with envato lastname.<br />
+					<strong>{{user.image_url}}</strong> will be replaced with avatar's url.<br />
+					<strong>{{user.country}}</strong> will be replaced with user's country.<br />
+					<strong>{{item.*}}</strong> will be replaced with envato item information, e.g {{item.id}}<br />
+					<strong>{{purchases.*}}</strong> will be replaced with purchase information.<br />
+					<strong>{{caldera.fieldslug}}</strong> will be replaced with caldera form slug, e.g {{caldera.fieldslug}}.
+				</p>
 			</div>
 		</div>
 

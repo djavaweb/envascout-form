@@ -116,6 +116,12 @@ class WP_Helpscout_Api {
 				)
 			);
 
+			if ( is_wp_error( $request ) ) {
+				return array(
+					'message' => $request->get_error_message(),
+				);
+			}
+
 			// Save cache.
 			$mailbox_list = wp_remote_retrieve_body( $request );
 
@@ -156,6 +162,12 @@ class WP_Helpscout_Api {
 				),
 				'body' => wp_json_encode( $fields ),
 			) );
+
+			if ( is_wp_error( $request ) ) {
+				return array(
+					'message' => $request->get_error_message(),
+				);
+			}
 
 			$response = wp_remote_retrieve_body( $request );
 
@@ -225,6 +237,12 @@ class WP_Helpscout_Api {
 				'body' => $fields,
 			)
 		);
+
+		if ( is_wp_error( $request ) ) {
+			return array(
+				'message' => $request->get_error_message(),
+			);
+		}
 
 		return $request;
 	}
