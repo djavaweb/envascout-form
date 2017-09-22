@@ -81,7 +81,7 @@ class Envascout_Form_Admin {
 
 		if ( 'toplevel_page_envascout-form-setting' === $screen->id ) {
 			wp_enqueue_style( 'envascout-form', ENVASCOUT_FORM_PLUGIN_URL . 'assets/css/admin-styles.css', array(), null );
-			wp_enqueue_script( 'vue', 'https://unpkg.com/vue', array(), null, true );
+			wp_enqueue_script( 'vue', ENVASCOUT_FORM_PLUGIN_URL . 'assets/js/vue.js', array(), null, true );
 			wp_enqueue_script( 'envascout-form', ENVASCOUT_FORM_PLUGIN_URL . 'assets/js/admin-scripts.js', array( 'vue' ), null, true );
 		}
 
