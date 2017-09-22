@@ -29,10 +29,14 @@ if ( ! function_exists( 'is_plugin_active' ) ) {
 	include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 }
 
-require_once( ENVASCOUT_FORM_PLUGIN_DIR . 'class-wp-github-updater.php' );
-require_once( ENVASCOUT_FORM_PLUGIN_DIR . 'class-wp-envato-api.php' );
-require_once( ENVASCOUT_FORM_PLUGIN_DIR . 'class-wp-helpscout-api.php' );
-require_once( ENVASCOUT_FORM_PLUGIN_DIR . 'class-envascout-form.php' );
+require_once ENVASCOUT_FORM_PLUGIN_DIR . 'class-wp-github-updater.php';
+require_once ENVASCOUT_FORM_PLUGIN_DIR . 'class-wp-envato-api.php';
+require_once ENVASCOUT_FORM_PLUGIN_DIR . 'class-wp-helpscout-api.php';
+require_once ENVASCOUT_FORM_PLUGIN_DIR . 'class-envascout-form.php';
+
+if ( ! class_exists( 'Twig_Loader_Filesystem' ) ) {
+	require_once ENVASCOUT_FORM_PLUGIN_DIR .'/vendor/autoload.php';
+}
 add_action( 'init', array( 'Envascout_Form', 'init' ), 0 );
 
 if ( is_admin() && is_plugin_active( 'caldera-forms/caldera-core.php' ) ) {
