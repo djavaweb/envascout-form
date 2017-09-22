@@ -591,11 +591,41 @@ class Envascout_Form {
 			$sql = 'CREATE TABLE `' . $ticket_table . '` (' .
 				'`ID` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,' .
 				'`ticket_id` varchar(60) NOT NULL,' .
+				'`purchase_id` varchar(255) NOT NULL,' .
+				'`item_id` varchar(60) NOT NULL,' .
 				'`email` varchar(60) NOT NULL,' .
 				'`data` text NOT NULL,' .
 				'`time` varchar(60) NOT NULL,' .
 				'PRIMARY KEY (`ID`),' .
 				'KEY `ticket_id` (`ticket_id`)' .
+			') ENGINE=InnoDB DEFAULT CHARSET=utf8;';
+			dbDelta( $sql );
+		}
+
+		// Item structures.
+		$item_table = $table_prefix . 'envascout_items';
+		if ( $item_table !== $wpdb->get_var( 'SHOW TABLES LIKE \'' . $item_table . '\'' ) ) {
+			$sql = 'CREATE TABLE `' . $item_table . '` (' .
+				'`ID` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,' .
+				'`item_id` varchar(60) NOT NULL,' .
+				'`data` text NOT NULL,' .
+				'`time` varchar(60) NOT NULL,' .
+				'PRIMARY KEY (`ID`),' .
+				'UNIQUE(`item_id`)' .
+			') ENGINE=InnoDB DEFAULT CHARSET=utf8;';
+			dbDelta( $sql );
+		}
+
+		// Purchase structures
+		$purchase_table = $table_prefix . 'envascout_purchases';
+		if ( $purchase_table !== $wpdb->get_var( 'SHOW TABLES LIKE \'' . $purchase_table . '\'' ) ) {
+			$sql = 'CREATE TABLE `' . $purchase_table . '` (' .
+				'`ID` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,' .
+				'`purchase_id` varchar(60) NOT NULL,' .
+				'`data` text NOT NULL,' .
+				'`time` varchar(60) NOT NULL,' .
+				'PRIMARY KEY (`ID`),' .
+				'UNIQUE(`purchase_id`)' .
 			') ENGINE=InnoDB DEFAULT CHARSET=utf8;';
 			dbDelta( $sql );
 		}
