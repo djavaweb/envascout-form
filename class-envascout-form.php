@@ -235,6 +235,7 @@ class Envascout_Form {
 		// Get purchase details by items.
 		$purchase_detail = self::$envato_api->get_all_purchase_from_buyer();
 		$purchase_info = array();
+		$item_info = array();
 		$purchase_id = '';
 		$item_info = array();
 		$item_id = 0;
@@ -278,21 +279,10 @@ class Envascout_Form {
 		$tags = array();
 		if ( ! empty( self::$options['helpscout_tag'] ) ) {
 			$compiled_tags = $twig->render('tag', array(
-				'caldera' => $data
+				'caldera' => $data,
+				'item' => $item_info,
+				'purchase' => $purchase_info,
 			));
-
-			if ( isset( $purchase_info ) ) {
-				$compiled_tags = $compiled_tags = $twig->render('tag', array(
-					'purchase' => $purchase_info,
-				));
-			}
-
-			if ( isset( $item_info ) ) {
-				$compiled_tags = $compiled_tags = $twig->render('tag', array(
-					'item' => $item_info,
-				));
-			}
-
 			$compiled_tags = explode( ',', $compiled_tags );
 			$compiled_tags = array_map( 'trim', $compiled_tags );
 			$compiled_tags = array_map( 'sanitize_title_with_dashes', $compiled_tags );
@@ -550,10 +540,9 @@ class Envascout_Form {
 			'session_prefix' => 'session',
 			'helpscout_api_key' => '',
 			'helpscout_mailbox' => 0,
-			'helpscout_subject' => '%subject%',
-			'helpscout_content' => '%content%',
-			'helpscout_tag' => '',
-			'helpscout_not_a_buyer' => 'Presale Support',
+			'helpscout_subject' => '{{caldera.subject}}',
+			'helpscout_content' => '{{caldera.content}}',
+			'helpscout_tag' => '{{item.name}}',
 			'helpscout_dynamic_app' => "<img src=\"%image_url%\" />\r\n \r\n <div class=\"toggleGroup open\">\r\n <h4><a href=\"#\" class=\"toggleBtn\"><i class=\"icon-person\"></i>Profile</a></h4>\r\n <div class=\"toggle indent\">\r\n <ul class=\"unstyled\">\r\n <li><strong>Username</strong><br />%username%</li>\r\n <li><strong>Name</strong><br />%firstname% %lastname%</li>\r\n <li><strong>Country</strong><br />%country%</li>\r\n </ul>\r\n </div>\r\n </div>\r\n \r\n <div class=\"toggleGroup\">\r\n <h4><a href=\"#\" class=\"toggleBtn\"><i class=\"icon-tag\"></i>Item Info</a></h4>\r\n <div class=\"toggle indent\">\r\n %item_info%\r\n </div>\r\n </div>\r\n \r\n<div class=\"toggleGroup\">\r\n <h4><a href=\"#\" class=\"toggleBtn\"><i class=\"icon-cart\"></i>Purchase Info</a></h4>\r\n <div class=\"toggle indent\">\r\n %purchase_info%\r\n </div>\r\n </div>\r\n",
 		);
 		add_option( 'envascout_options', wp_json_encode( $default_options ), '', false );
@@ -591,11 +580,41 @@ class Envascout_Form {
 			$sql = 'CREATE TABLE `' . $ticket_table . '` (' .
 				'`ID` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,' .
 				'`ticket_id` varchar(60) NOT NULL,' .
+				'`purchase_id` varchar(255) NOT NULL,' .
+				'`item_id` varchar(60) NOT NULL,' .
 				'`email` varchar(60) NOT NULL,' .
 				'`data` text NOT NULL,' .
 				'`time` varchar(60) NOT NULL,' .
 				'PRIMARY KEY (`ID`),' .
 				'KEY `ticket_id` (`ticket_id`)' .
+			') ENGINE=InnoDB DEFAULT CHARSET=utf8;';
+			dbDelta( $sql );
+		}
+
+		// Item structures.
+		$item_table = $table_prefix . 'envascout_items';
+		if ( $item_table !== $wpdb->get_var( 'SHOW TABLES LIKE \'' . $item_table . '\'' ) ) {
+			$sql = 'CREATE TABLE `' . $item_table . '` (' .
+				'`ID` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,' .
+				'`item_id` varchar(60) NOT NULL,' .
+				'`data` text NOT NULL,' .
+				'`time` varchar(60) NOT NULL,' .
+				'PRIMARY KEY (`ID`),' .
+				'UNIQUE(`item_id`)' .
+			') ENGINE=InnoDB DEFAULT CHARSET=utf8;';
+			dbDelta( $sql );
+		}
+
+		// Purchase structures
+		$purchase_table = $table_prefix . 'envascout_purchases';
+		if ( $purchase_table !== $wpdb->get_var( 'SHOW TABLES LIKE \'' . $purchase_table . '\'' ) ) {
+			$sql = 'CREATE TABLE `' . $purchase_table . '` (' .
+				'`ID` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,' .
+				'`purchase_id` varchar(60) NOT NULL,' .
+				'`data` text NOT NULL,' .
+				'`time` varchar(60) NOT NULL,' .
+				'PRIMARY KEY (`ID`),' .
+				'UNIQUE(`purchase_id`)' .
 			') ENGINE=InnoDB DEFAULT CHARSET=utf8;';
 			dbDelta( $sql );
 		}
