@@ -235,6 +235,7 @@ class Envascout_Form {
 		// Get purchase details by items.
 		$purchase_detail = self::$envato_api->get_all_purchase_from_buyer();
 		$purchase_info = array();
+		$item_info = array();
 		$purchase_id = '';
 		$item_info = array();
 		$item_id = 0;
@@ -278,21 +279,10 @@ class Envascout_Form {
 		$tags = array();
 		if ( ! empty( self::$options['helpscout_tag'] ) ) {
 			$compiled_tags = $twig->render('tag', array(
-				'caldera' => $data
+				'caldera' => $data,
+				'item' => $item_info,
+				'purchase' => $purchase_info,
 			));
-
-			if ( isset( $purchase_info ) ) {
-				$compiled_tags = $compiled_tags = $twig->render('tag', array(
-					'purchase' => $purchase_info,
-				));
-			}
-
-			if ( isset( $item_info ) ) {
-				$compiled_tags = $compiled_tags = $twig->render('tag', array(
-					'item' => $item_info,
-				));
-			}
-
 			$compiled_tags = explode( ',', $compiled_tags );
 			$compiled_tags = array_map( 'trim', $compiled_tags );
 			$compiled_tags = array_map( 'sanitize_title_with_dashes', $compiled_tags );
