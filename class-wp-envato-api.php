@@ -202,6 +202,12 @@ class WP_Envato_API {
 			)
 		);
 
+		if ( is_wp_error( $request ) ) {
+			return array(
+				'message' => $request->get_error_message(),
+			);
+		}
+
 		$response = wp_remote_retrieve_body( $request );
 
 		if ( $response ) {
@@ -230,6 +236,12 @@ class WP_Envato_API {
 					'Authorization' => 'Bearer ' . $this->session_get( 'access_token' ),
 				),
 			) );
+
+			if ( is_wp_error( $request ) ) {
+				return array(
+					'message' => $request->get_error_message(),
+				);
+			}
 
 			$response = wp_remote_retrieve_body( $request );
 			$status = wp_remote_retrieve_response_code( $request );
