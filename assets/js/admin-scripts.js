@@ -1,5 +1,6 @@
 var app = new Vue({
   el: '#envascout-wrap',
+  delimiters: ['${', '}'],
   data: {
     displayTab: 'envato',
     envato: {
