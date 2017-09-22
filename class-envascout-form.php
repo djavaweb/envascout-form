@@ -204,34 +204,6 @@ class Envascout_Form {
 	}
 
 	/**
-	 * Replace string as syntax field.
-	 *
-	 * @param string $string Content.
-	 * @return string
-	 */
-	public static function syntax_key( $string = '' ) {
-		return '%' . $string . '%';
-	}
-
-	/**
-	 * Syntax replacement.
-	 *
-	 * @static
-	 * @param string $content Content.
-	 * @param array  $syntax Syntax List.
-	 * @return string
-	 */
-	public static function syntax_compiler( $content = '', $syntax = array() ) {
-		foreach ( $syntax as $_key => $_value ) {
-			if ( is_string ( $_value ) ) {
-				$content = str_replace( self::syntax_key( $_key ), $_value, $content );
-			}
-		}
-
-		return $content;
-	}
-
-	/**
 	 * Submit caldera forms.
 	 *
 	 * @param array $form Caldera Fields.
@@ -240,74 +212,104 @@ class Envascout_Form {
 	public static function caldera_submit_forms( $form ) {
 		global $table_prefix, $wpdb;
 
+		// Only submit process when caldera form id is matches with settings.
 		if ( $form['ID'] !== self::$options['caldera_form'] ) {
 			Caldera_Forms_Files::cleanup( $form );
 			return true;
 		}
 
-		// Get data.
+		// Templating loader.
+		$templates = array(
+			'subject' => self::$options['helpscout_subject'],
+			'content' => self::$options['helpscout_content'],
+			'tag' => self::$options['helpscout_tag'],
+		);
+		$twig = new Twig_Environment( new Twig_Loader_Array( $templates ) );
+
+		// Get submission data.
 		$data = array();
 		foreach ( $form['fields'] as $field_id => $field ) {
 			$data[ $field['slug'] ] = Caldera_Forms::get_field_data( $field_id, $form );
 		}
 
 		// Get purchase details by items.
-		// Build purchase data.
-		// Because it need authorization, we need to save it to database.
 		$purchase_detail = self::$envato_api->get_all_purchase_from_buyer();
-		$data['purchase_info'] = array();
+		$purchase_info = array();
+		$purchase_id = '';
+		$item_info = array();
+		$item_id = 0;
 
-		if ( isset( $purchase_detail['purchases'] ) ) {
+		if ( isset( $purchase_detail['purchases'] ) && ! empty( $purchase_detail['purchases'] ) ) {
 			$purchase_items = $purchase_detail['purchases'];
-			$purchase_info = array();
-			foreach ( $purchase_items as $detail ) {
+
+			foreach ( $purchase_detail['purchases'] as $detail ) {
 				if ( strval( $detail['item']['id'] ) === $data[ self::$options['caldera_item_id'] ] ) {
-					$data['purchase_info'][ $detail['sold_at'] ] = array(
-						'Purchase Code' => $detail['code'],
-						'License' => $detail['license'],
-						'Supported Until' => $detail['supported_until'],
-					);
+					$purchase_info[] = $detail;
+					$purchase_id = $detail['code'];
+					$wpdb->query( $wpdb->prepare( 'INSERT INTO `' . $table_prefix . 'envascout_purchases` (`ID`, `purchase_id`, `data`, `time`) VALUES (NULL, %s, %s, %s) ON DUPLICATE KEY UPDATE `purchase_id` = `purchase_id`;',
+						$purchase_id,
+						wp_json_encode( $detail ),
+						time()
+					) );
+
+					$item_info = $detail['item'];
+					$item_id = $detail['item']['id'];
+					$wpdb->query( $wpdb->prepare( 'INSERT INTO `' . $table_prefix . 'envascout_items` (`ID`, `item_id`, `data`, `time`) VALUES (NULL, %s, %s, %s) ON DUPLICATE KEY UPDATE `item_id` = `item_id`;',
+						$item_id,
+						wp_json_encode( $item_info ),
+						time()
+					) );
 				}
 			}
-		}
-
-		// Build item info.
-		$data['item_info'] = array();
-
-		if ( intval( $data[ self::$options['caldera_item_id'] ] ) > 0 ) {
-			$item_detail = self::$envato_api->get_item( $data[ self::$options['caldera_item_id'] ] );
-		}
-
-		if ( isset( $item_detail ) ) {
-			$available_item_info = array( 'name', 'updated_at', 'published_at' );
-			$item_info = array();
-
-			foreach ( $item_detail as $key => $value ) {
-				if ( in_array( $key, $available_item_info, true ) ) {
-					$title = str_replace( '_', ' ', $key );
-					$title = ucfirst( $title );
-					$data['item_info'][ $title ] = $value;
-				}
-			}
-		}
-
-		if ( empty( $data['purchase_info' ] ) && empty( $data['item_info'] ) ) {
+		} else {
 			$data['not_a_buyer'] = true;
 		}
 
 		// Get user full detail.
 		$user_info = self::$envato_api->get_user_full_info();
 
-		// Get Attachment
+		// Get Attachment.
 		$attachment = array();
 		if ( isset( $data[ self::$options['caldera_attachment_id'] ] ) ) {
 			$attachment[] = $data[ self::$options['caldera_attachment_id'] ];
 		}
 
+		// Parsing tags.
+		$tags = array();
+		if ( ! empty( self::$options['helpscout_tag'] ) ) {
+			$compiled_tags = $twig->render('tag', array(
+				'caldera' => $data
+			));
+
+			if ( isset( $purchase_info ) ) {
+				$compiled_tags = $compiled_tags = $twig->render('tag', array(
+					'purchase' => $purchase_info,
+				));
+			}
+
+			if ( isset( $item_info ) ) {
+				$compiled_tags = $compiled_tags = $twig->render('tag', array(
+					'item' => $item_info,
+				));
+			}
+
+			$compiled_tags = explode( ',', $compiled_tags );
+			$compiled_tags = array_map( 'trim', $compiled_tags );
+			$compiled_tags = array_map( 'sanitize_title_with_dashes', $compiled_tags );
+
+			$tags = $compiled_tags;
+		}
+
 		// Compile syntax from data.
 		if ( $user_info ) {
-			$subject = self::syntax_compiler( self::$options['helpscout_subject'], $data );
-			$content = self::syntax_compiler( self::$options['helpscout_content'], $data );
+			$subject = $twig->render( 'subject', array(
+				'caldera' => $data,
+			) );
+
+			$content = $twig->render( 'content', array(
+				'caldera' => $data,
+			) );
+
 			$request = self::$helpscout->compose_message(
 				// Customer Info.
 				array(
@@ -320,8 +322,9 @@ class Envascout_Form {
 					'subject' => $subject,
 					'message' => wpautop( $content ),
 				),
+
 				// Tags.
-				array(),
+				$tags,
 
 				// Attachments.
 				$attachment
@@ -340,10 +343,14 @@ class Envascout_Form {
 						array(
 							'email' => self::$envato_api->session_get( 'email' ),
 							'ticket_id' => $conversation_id,
+							'purchase_id' => $purchase_id,
+							'item_id' => $item_id,
 							'data' => wp_json_encode( $data ),
 							'time' => time(),
 						),
 						array(
+							'%s',
+							'%d',
 							'%s',
 							'%d',
 							'%s',
@@ -449,61 +456,65 @@ class Envascout_Form {
 				case 'helpscout_app':
 					header( 'Content-type: application/json' );
 
+					// Data Request from helpscout.
 					$php_input = json_decode( file_get_contents('php://input'), true );
+
+					// Templating loader.
+					$html = '';
+					$templates = array(
+						'dynamic_app' => self::$options['helpscout_dynamic_app'],
+					);
+
+					$twig = new Twig_Environment( new Twig_Loader_Array( $templates ), array(
+						'debug' => true,
+					) );
+					$twig->addExtension(new Twig_Extension_Debug());
 
 					// Get email from db.
 					if ( isset( $php_input['ticket' ] ) ) {
 						$ticket_id = $php_input['ticket']['id'];
-						$html = self::$options['helpscout_dynamic_app'];
-						$result = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM `' . $table_prefix . 'envascout_tickets` as `tickets` INNER JOIN `' . $table_prefix . 'envascout_users` as `users` ON `tickets`.`email` = `users`.`email` WHERE `tickets`.`ticket_id` = %d', $ticket_id ) , ARRAY_A );
-						$data = array();
 
-						if ( $result ) {
-							$data = json_decode( $result[0]['data'], true );
-							$data = array_merge( $data, $result[0] );
+						// Get ticket and users data.
+						$ticket = $wpdb->get_row( $wpdb->prepare('SELECT * FROM `' . $table_prefix . 'envascout_tickets` WHERE `ticket_id` = %d', $ticket_id) );
 
-							unset( $result[0]['data'] );
-							unset( $data['ID'] );
+						if ( $ticket ) {
+							$data = json_decode( $ticket->data );
+							$purchase_id = $ticket->purchase_id;
+							$item_id = $ticket->item_id;
+							$email = $ticket->email;
 
-							if ( isset( $data['not_a_buyer'] ) && true === $data['not_a_buyer'] ) {
-								$html = sprintf( '<p><span class="badge red">%s</span></p><br />', self::$options['helpscout_not_a_buyer'] ) . $html;
-							}
+							// Get users data.
+							$user_info = $wpdb->get_row( $wpdb->prepare('SELECT * FROM `' . $table_prefix . 'envascout_users` WHERE `email` = %s', $email) );
 
-							// Parsing %purchase_info% syntax.
-							if ( isset( $data['purchase_info'] ) ) {
-								$purchase_info_html = '<ul class="unstyled">';
+							// Get purchase data.
+							$purchases = $wpdb->get_results( $wpdb->prepare('SELECT * FROM `' . $table_prefix . 'envascout_purchases` WHERE `purchase_id` = %s', $purchase_id), ARRAY_A );
+							$purchase_info = [];
+							$support_expired = false;
+							if ( $purchases ) {
+								foreach( $purchases as $index => $info ) {
+									$_purchase_info = json_decode( $info['data'], true );
+									$purchase_info[$index + 1] = $_purchase_info;
 
-								foreach ( $data['purchase_info'] as $sold_at => $details ) {
-									if ( $details ) {
-										$purchase_info_html .= sprintf( '<li><span class="icon-cash"></span> <strong>Purchase #1</strong><br />' );
-										$purchase_info_html .= '<ul>';
-										$purchase_info_html .= sprintf( '<li><strong>Purchase Date</strong><br />%s</li>', $sold_at );
-										foreach ( $details as $label => $info ) {
-											$purchase_info_html .= sprintf( '<li><strong>%s</strong><br />%s</li>', $label, $info );
-										}
-										$purchase_info_html .= '</ul>';
-										$purchase_info_html .= '</li>';
+									if ( time() > strtotime($_purchase_info['supported_until'] ) ) {
+										$support_expired = true;
 									}
 								}
-
-								$purchase_info_html .= '</ul>';
-								$data['purchase_info'] = $purchase_info_html;
 							}
 
-							// Parsing %item_info% syntax.
-							if ( isset( $data['item_info'] ) ) {
-								$item_info_html = '<ul class="unstyled">';
-
-								foreach ( $data['item_info'] as $label => $value ) {
-									$item_info_html .= sprintf( '<li><strong>%s</strong><br />%s</li>', $label, $value );
-								}
-
-								$item_info_html .= '</ul>';
-								$data['item_info'] = $item_info_html;
+							// // Get item data.
+							$item_info = $wpdb->get_row( $wpdb->prepare('SELECT * FROM `' . $table_prefix . 'envascout_items` WHERE `item_id` = %s', $item_id) );
+							if ( $item_info ) {
+								$item_info = json_decode( $item_info->data, true );
 							}
+
+							$html = $twig->render( 'dynamic_app', array(
+								'user' => $user_info,
+								'item' => $item_info,
+								'purchase' => $purchase_info,
+								'not_buyer' => ( isset( $data->not_a_buyer ) ) ? $data->not_a_buyer : false,
+								'support_expired' => $support_expired,
+							) );
 						}
-
-						$html = self::syntax_compiler( $html, $data );
 
 						echo wp_json_encode( array(
 							'html' => wpautop( stripslashes_deep( $html ) ),
@@ -540,11 +551,13 @@ class Envascout_Form {
 			'helpscout_api_key' => '',
 			'helpscout_mailbox' => 0,
 			'helpscout_subject' => '%subject%',
-			'helscout_content' => '%content%',
+			'helpscout_content' => '%content%',
+			'helpscout_tag' => '',
 			'helpscout_not_a_buyer' => 'Presale Support',
 			'helpscout_dynamic_app' => "<img src=\"%image_url%\" />\r\n \r\n <div class=\"toggleGroup open\">\r\n <h4><a href=\"#\" class=\"toggleBtn\"><i class=\"icon-person\"></i>Profile</a></h4>\r\n <div class=\"toggle indent\">\r\n <ul class=\"unstyled\">\r\n <li><strong>Username</strong><br />%username%</li>\r\n <li><strong>Name</strong><br />%firstname% %lastname%</li>\r\n <li><strong>Country</strong><br />%country%</li>\r\n </ul>\r\n </div>\r\n </div>\r\n \r\n <div class=\"toggleGroup\">\r\n <h4><a href=\"#\" class=\"toggleBtn\"><i class=\"icon-tag\"></i>Item Info</a></h4>\r\n <div class=\"toggle indent\">\r\n %item_info%\r\n </div>\r\n </div>\r\n \r\n<div class=\"toggleGroup\">\r\n <h4><a href=\"#\" class=\"toggleBtn\"><i class=\"icon-cart\"></i>Purchase Info</a></h4>\r\n <div class=\"toggle indent\">\r\n %purchase_info%\r\n </div>\r\n </div>\r\n",
 		);
 		add_option( 'envascout_options', wp_json_encode( $default_options ), '', false );
+		update_option( 'envascout_version',  ENVASCOUT_FORM_VER );
 
 		// Add database structure.
 		if ( ! function_exists( 'dbDelta' ) ) {
