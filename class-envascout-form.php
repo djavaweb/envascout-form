@@ -233,7 +233,7 @@ class Envascout_Form {
 		}
 
 		// Get purchase details by items.
-		$purchase_detail = self::$envato_api->get_all_purchase_from_buyer();
+		$purchase_detail = self::$envato_api->get_all_purchase_from_buyer(false);
 		$purchase_info = array();
 		$item_info = array();
 		$purchase_id = '';
@@ -267,7 +267,7 @@ class Envascout_Form {
 		}
 
 		// Get user full detail.
-		$user_info = self::$envato_api->get_user_full_info();
+		$user_info = self::$envato_api->get_user_full_info(false);
 
 		// Get Attachment.
 		$attachment = array();
@@ -403,7 +403,7 @@ class Envascout_Form {
 						// If succeed redirect again to new-ticket page.
 						if ( self::$envato_api->is_token_valid( $token ) ) {
 							// Save user to database.
-							$user_info = self::$envato_api->get_user_full_info();
+							$user_info = self::$envato_api->get_user_full_info( false );
 
 							// Usually it give erros when envato server down, show it's safe to check it first.
 							if ( isset( $user_info ) && isset( $user_info['email'] ) && isset( $user_info['username'] ) ) {
