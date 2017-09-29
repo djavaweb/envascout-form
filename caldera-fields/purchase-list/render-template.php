@@ -1,5 +1,5 @@
 <?php
-$purchase_detail = Envascout_Form::$envato_api->get_all_purchase_from_buyer();
+$purchase_detail = Envascout_Form::$envato_api->get_all_purchase_from_buyer(false);
 
 if ( ! isset( $purchase_detail['purchases'] ) ) {
 	echo 'API maintenance.';

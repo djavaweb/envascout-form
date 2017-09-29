@@ -219,11 +219,12 @@ class WP_Envato_API {
 	 * Request API
 	 *
 	 * @param string $path API Path.
+	 * @param bool $cache Save data to transient.
 	 * @param string $api_version API Version.
 	 * @param int    $transient_duration Cache Duration in Minutes.
 	 * @return array
 	 */
-	public function request_api( $path, $api_version = '', $transient_duration = 15 ) {
+	public function request_api( $path, $cache = true, $api_version = '', $transient_duration = 15 ) {
 		$endpoint_url = $this->api_url( $path, false, $api_version );
 		$transient_key = sanitize_title_with_dashes( $endpoint_url );
 		$data = get_transient( $this->transient_prefix . $transient_key );
@@ -254,7 +255,9 @@ class WP_Envato_API {
 
 			// Return only if response is valid.
 			if ( isset( $response ) ) {
-				set_transient( $this->transient_prefix . $transient_key, $response, 60 * $transient_duration );
+				if ( $cache ) {
+					set_transient( $this->transient_prefix . $transient_key, $response, 60 * $transient_duration );
+				}
 				$data = $response;
 			}
 		}
@@ -302,20 +305,22 @@ class WP_Envato_API {
 	/**
 	 * Get all purchase from author's app.
 	 *
+	 * @param bool $cache Set to transient.
 	 * @return array
 	 */
-	public function get_all_purchase_from_buyer() {
-		return $this->request_api( 'market/buyer/purchases' );
+	public function get_all_purchase_from_buyer( $cache = true ) {
+		return $this->request_api( 'market/buyer/purchases', $cache );
 	}
 
 	/**
 	 * Get product item details.
 	 *
 	 * @param int|string $item_id Envato item ID.
+	 * @param bool $cache Set to transient.
 	 * @return string
 	 */
-	public function get_item( $item_id = 0 ) {
-		$response = $this->request_api( 'market/catalog/item?id=' . $item_id, 'v3', 1000 );
+	public function get_item( $item_id = 0, $cache = true ) {
+		$response = $this->request_api( 'market/catalog/item?id=' . $item_id, $cache, 'v3', 1000 );
 		if ( $response && ! isset( $response['message'] ) ) {
 			return $response;
 		}
@@ -324,10 +329,11 @@ class WP_Envato_API {
 	/**
 	 * Get username.
 	 *
+	 * @param bool $cache Set to transient.
 	 * @return string
 	 */
-	public function get_username() {
-		$response = $this->request_api( 'market/private/user/username.json', 'v1' );
+	public function get_username( $cache = true ) {
+		$response = $this->request_api( 'market/private/user/username.json', $cache, 'v1' );
 		if ( $response && ! isset( $response['message'] ) && isset( $response['username'] ) ) {
 			return $response['username'];
 		}
@@ -336,19 +342,21 @@ class WP_Envato_API {
 	/**
 	 * Get user information.
 	 *
+	 * @param bool $cache Set to transient.
 	 * @return string
 	 */
-	public function get_user_info() {
-		return $this->request_api( 'market/private/user/account.json', 'v1' );
+	public function get_user_info( $cache = true ) {
+		return $this->request_api( 'market/private/user/account.json', $cache, 'v1' );
 	}
 
 	/**
 	 * Get user email.
 	 *
+	 * @param bool $cache Set to transient.
 	 * @return string
 	 */
-	public function get_user_email() {
-		$response = $this->request_api( 'market/private/user/email.json', 'v1' );
+	public function get_user_email( $cache = true ) {
+		$response = $this->request_api( 'market/private/user/email.json', $cache, 'v1' );
 		if ( $response && ! isset( $response['message'] ) && isset( $response['email'] ) ) {
 			return $response['email'];
 		}
@@ -357,15 +365,16 @@ class WP_Envato_API {
 	/**
 	 * Get user full information, includes email and username.
 	 *
+	 * @param bool $cache Set to transient.
 	 * @return array
 	 */
-	public function get_user_full_info() {
-		$response = $this->get_user_info();
+	public function get_user_full_info( $cache = true ) {
+		$response = $this->get_user_info( $cache );
 
 		if ( $response && isset( $response['account'] ) ) {
 			$user_info = $response['account'];
-			$user_email = $this->get_user_email();
-			$username = $this->get_username();
+			$user_email = $this->get_user_email( $cache );
+			$username = $this->get_username( $cache );
 
 			if ( isset( $user_email ) ) {
 				$user_info['email'] = $user_email;
